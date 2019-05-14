@@ -1,0 +1,32 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Configure Bike</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-progress-bar *ngIf="connecting" type="indeterminate">Connecting...</ion-progress-bar>
+
+<ion-content>
+  <form #form="ngForm" (ngSubmit)="submit(form)">
+    <ion-item>
+      <ion-label position="stacked">Year</ion-label>
+      <ion-input ngModel required name="year" inputmode="numeric" maxlength=4 minlength=4></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Make</ion-label>
+      <ion-input ngModel required name="make"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Model</ion-label>
+      <ion-input ngModel required name="model"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Key Name</ion-label>
+      <ion-input ngModel required name="keyname"></ion-input>
+    </ion-item>
+    
+    <ion-button type="submit" expand="block">Save Bike</ion-button>
+  </form>
+</ion-content>

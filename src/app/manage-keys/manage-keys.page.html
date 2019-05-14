@@ -1,0 +1,25 @@
+<ion-header>
+	<ion-toolbar>
+		<ion-title>Manage Keys</ion-title>
+	</ion-toolbar>
+</ion-header>
+<ion-progress-bar *ngIf="connecting" type="indeterminate">Connecting...</ion-progress-bar>
+
+<ion-content>
+	<ion-list>
+
+		<ion-item-sliding *ngFor="let k of this.bike.keyInfo">
+			<ion-item>
+				<ion-label>Name:</ion-label>
+				<ion-input (ionBlur)="edit(k,$event)" value="{{k.name}}"></ion-input>
+			</ion-item>
+			<ion-item-options side="end">
+				<ion-item-option color="danger">
+					<ion-icon slot="icon-only" name="trash" (click)="deleteKey(k)"></ion-icon>
+				</ion-item-option>
+			</ion-item-options>
+		</ion-item-sliding>
+
+	</ion-list>
+  <ion-button routerDirection="forward" [routerLink]="'/reg-key/'+bike.addr" >Create New Key</ion-button>
+</ion-content>

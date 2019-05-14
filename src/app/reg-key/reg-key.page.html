@@ -1,0 +1,27 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Register Key</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-progress-bar *ngIf="loading" type="indeterminate"></ion-progress-bar>
+
+<ion-content>
+  <form #form="ngForm">
+    <ion-item>
+      <ion-label position="stacked">Key Name</ion-label>
+      <ion-input ngModel name="name" required ></ion-input>
+    </ion-item>
+    <ion-button (click)="register('f', form)" expand="block">Register Full Key</ion-button>
+    <ion-button (click)="register('l', form)" expand="block">Register Limited Key</ion-button>
+  </form>
+
+  <div *ngIf="qrstring.length !== 0">
+    <ngx-qrcode 
+      qrc-element-type="canvas" 
+      [qrc-value] = "[qrstring]"
+      qrc-width = 500
+      qrc-height = 500>
+    </ngx-qrcode>
+    <p>Your key has been generated. Scan this QR code with the MCIGN app on another phone to import the key. This QR code will not be shown again.</p>
+  </div>
+</ion-content>

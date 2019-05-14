@@ -1,0 +1,51 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{bike.toString()}} <span style="float:right" [ngStyle]="{'color':this.color}">&#9679;</span></ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-progress-bar *ngIf="connecting" type="indeterminate"></ion-progress-bar>
+<ion-progress-bar *ngIf="progress <= 100 && progress >= 0" [value]="progress"></ion-progress-bar>
+
+<ion-content>
+  <!--{{prox}}-->
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <ion-button shape="round" (click)="toggle()" expand="full" class="start_btn" id="toggle_switch" >
+          <!--{{this.bike.state==='n'?"Off":"On"}}-->
+          <ion-icon size="large" slot="icon-only" [name]="this.bike.state==='n'?'lock':'unlock'"></ion-icon>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <ion-button (click)="configProximity()" id="config_prox" >
+          <!--Configure<br/>Proximity-->
+          <ion-icon size="large" slot="icon-only" name="wifi"></ion-icon>
+        </ion-button>
+        <br/>
+        Proximity
+      </ion-col>
+      <!--<ion-col>
+        <ion-button size="large" routerDirection="forward" [routerLink]="'/reg-key/f/'+bike.addr" >Create<br/>Full Key</ion-button>
+      </ion-col>
+      <ion-col>
+        <ion-button size="large" routerDirection="forward" [routerLink]="'/reg-key/l/'+bike.addr" >Create<br/>Limited<br/>Key</ion-button>
+      </ion-col>-->
+      <ion-col>
+        <ion-button shape="round" (click)="manageKeys()" ><!--Manage<br/>Keys-->
+          <ion-icon size="large" slot="icon-only" name="key"></ion-icon>
+        </ion-button>
+        <br/>
+        Keys
+      </ion-col>
+      <ion-col>
+        <ion-button disabled=true  shape="round"><!--Lock<br/>Handlebars-->
+          <ion-icon size="large" slot="icon-only" name="settings"></ion-icon>
+        </ion-button>
+        <br/>
+        Settings
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

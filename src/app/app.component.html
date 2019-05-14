@@ -1,0 +1,32 @@
+<ion-app>
+  <ion-split-pane>
+    <ion-menu>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Bikes</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <ion-list>
+          <ion-menu-toggle auto-hide="false" *ngFor="let b of this.ign.bikes">
+            <ion-item color="{{b.color}}" (click)="ign.loadBike(b)" (press)="unregister(b)">
+              <!--<ion-icon src="{{b.icon}}"></ion-icon>-->
+              <ion-label>
+                {{b.toString()}}
+              </ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+        </ion-list>
+        <ion-item *ngIf="ign.bikes.length === 0">
+          No bikes configured
+        </ion-item>
+      </ion-content>
+      <ion-footer>
+        <ion-menu-toggle auto-hide="false">
+          <ion-button (click)="scan()" expand="block">Add a new bike</ion-button>
+        </ion-menu-toggle>
+      </ion-footer>
+    </ion-menu>
+    <ion-router-outlet main></ion-router-outlet>
+  </ion-split-pane>
+</ion-app>

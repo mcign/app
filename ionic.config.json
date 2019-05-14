@@ -1,0 +1,7 @@
+{
+  "name": "MCIGN",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular"
+}
