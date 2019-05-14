@@ -1,5 +1,6 @@
-/*
-    Copyright 2018,2019 Austin Haigh
+#!/bin/sh
+
+COPYRIGHT="    Copyright 2018,2019 Austin Haigh
 
     This file is part of MCIGN.
 
@@ -14,27 +15,34 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with MCIGN.  If not, see <https://www.gnu.org/licenses/>.
+    along with MCIGN.  If not, see <https://www.gnu.org/licenses/>."
 
+TMP="/tmp/copyright_`date +%s`.txt"
+
+for file in `find $1 -type f -name \*.html`
+do
+	echo $file
+	echo "<!--" > $TMP
+	echo "$COPYRIGHT" >> $TMP
+	echo "
+-->
+
+" >> $TMP
+	cat $file >> $TMP
+	cat $TMP > $file
+done
+
+for file in `find $1 -type f -name \*.ts -o -name \*.scss`
+do
+	echo $file
+	echo "/*" > $TMP
+	echo "$COPYRIGHT" >> $TMP
+	echo "
 */
 
+" >> $TMP
+	cat $file >> $TMP
+	cat $TMP > $file
+done
 
-import { Injectable } from '@angular/core';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class MasterKeyDataService {
-
-  constructor() { }
-
-  private data: string;
-
-  setData(newdata: string): void {
-    this.data = newdata;
-  }
-
-  getData(): string {
-    return this.data;
-  }
-}
+rm $TMP
