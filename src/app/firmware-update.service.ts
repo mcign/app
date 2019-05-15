@@ -29,15 +29,15 @@ import {Command, UPDATE} from './command';
 
 export const FW_VERSION_MAJOR = 0;
 export const FW_VERSION_MINOR = 2;
+export const OTA_SERVICE = '1D14D6EE-FD63-4FA1-BFA4-8F47B42119F0';
+export const OTA_CTRL_ATTRIBUTE = 'F7BF3564-FB6D-4E53-88A4-5E37E0326063';
+export const OTA_DATA_ATTRIBUTE = '984227F3-34FC-4045-A5D0-2C581F81A153';
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class FirmwareUpdateService {
-  private OTA_SERVICE = '1D14D6EE-FD63-4FA1-BFA4-8F47B42119F0';
-  private OTA_CTRL_ATTRIBUTE = 'F7BF3564-FB6D-4E53-88A4-5E37E0326063';
-  private OTA_DATA_ATTRIBUTE = '984227F3-34FC-4045-A5D0-2C581F81A153';
   private resolve;
   private reject;
 
@@ -62,68 +62,65 @@ export class FirmwareUpdateService {
 
   uploadGBL(file, bike, observer) {
     let uploadSuccess = false;
-    // TODO: set up connection timeout
     return new Promise((resolve, reject) => {
+      let timeout = setTimeout(()=>{
+        bike.disconnect()
+        reject("Connection timed out")
+      }, 5000)
+
       this.ble.connect({address: bike.getAddr()}).subscribe(
         (state) => {
           if (state.status === 'connected') {
+            clearTimeout(timeout)
             console.log('connected to OTA DFU mode');
-            const platformid: string = window.cordova.platformId;
-            if (platformid === 'android') {
-              let promise = this.ble.discover({address: state.address}).then((resp) => {
-                if (resp.status !== 'discovered') {
-                  throw ['UNEXPECTED RESPONSE', resp];
-                }
-                return this.ble.write({
-                  address: resp.address,
-                  service: this.OTA_SERVICE,
-                  characteristic: this.OTA_CTRL_ATTRIBUTE,
-                  value: this.ble.bytesToEncodedString(new Uint8Array([0]))  // starts OTA write procedure
-                });
+            let promise = bike.discoverService(OTA_SERVICE).then(service=>{
+              return this.ble.write({
+                address: bike.getAddr(),
+                service: OTA_SERVICE,
+                characteristic: OTA_CTRL_ATTRIBUTE,
+                value: this.ble.bytesToEncodedString(new Uint8Array([0]))  // starts OTA write procedure
               });
+            });
 
-              const bufSize = 255;
-              for (let i = 0; i < file.byteLength; i += bufSize) {
-                promise = promise.then((resp) => {
-                  console.log('wrote ' + i + ' bytes');
-                  observer.next(i / file.byteLength);
-                  return this.ble.write({
-                    address: state.address,
-                    service: this.OTA_SERVICE,
-                    characteristic: this.OTA_DATA_ATTRIBUTE,
-                    type: 'noResponse',
-                    value: this.ble.bytesToEncodedString(new Uint8Array(file.slice(i, i + bufSize)))
-                  }).catch((err) => {
-                    console.log('write error', err);
-                    throw err;
-                  });
-                });
-              }
-
-              promise.then((resp) => {
-                observer.next(100);
-                console.log('uploaded gbl file');
+            const bufSize = 255;
+            for (let i = 0; i < file.byteLength; i += bufSize) {
+              promise = promise.then((resp) => {
+                console.log('wrote ' + i + ' bytes');
+                observer.next(i / file.byteLength);
                 return this.ble.write({
                   address: state.address,
-                  service: this.OTA_SERVICE,
-                  characteristic: this.OTA_CTRL_ATTRIBUTE,
-                  value: this.ble.bytesToEncodedString(new Uint8Array([3])) // ends OTA write procedure
+                  service: OTA_SERVICE,
+                  characteristic: OTA_DATA_ATTRIBUTE,
+                  type: 'noResponse',
+                  value: this.ble.bytesToEncodedString(new Uint8Array(file.slice(i, i + bufSize)))
                 }).catch((err) => {
-                  console.log('final write error', err);
-                  throw new Error('Error uploading file to device: ' + err.status.toString(16));
+                  console.log('write error', err);
+                  throw err;
                 });
-              }).then((resp) => {
-                console.log('finished uploading, got response:', resp);
-                return this.ble.close({address: bike.getAddr()});
-              }).then((resp) => {
-                resolve();
-                uploadSuccess = true;
-                // TODO
-              }).catch(reject);
-
-            } else if (platformid === 'ios') {
-              // TODO: ios support
+              });
             }
+
+            promise.then((resp) => {
+              observer.next(100);
+              console.log('uploaded gbl file');
+              return this.ble.write({
+                address: state.address,
+                service: OTA_SERVICE,
+                characteristic: OTA_CTRL_ATTRIBUTE,
+                value: this.ble.bytesToEncodedString(new Uint8Array([3])) // ends OTA write procedure
+              }).catch((err) => {
+                console.log('final write error', err);
+                throw new Error('Error uploading file to device: ' + err.status.toString(16));
+              });
+            }).then((resp) => {
+              console.log('finished uploading, got response:', resp);
+              return this.ble.close({address: bike.getAddr()});
+            }).then((resp) => {
+              resolve();
+              uploadSuccess = true;
+              // TODO
+            }).catch(reject);
+
           } else if (state.status === 'disconnected') {
             if (uploadSuccess) {
               // resolve()
@@ -132,13 +129,13 @@ export class FirmwareUpdateService {
             }
           } else {
             reject(['unexpected connection state', state.status]);
- }
+          }
         },
         (err) => {
           console.log('Error connecting to device', err);
           reject(err);
         }
-              );
+      );
     });
   }
 

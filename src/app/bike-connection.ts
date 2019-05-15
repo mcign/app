@@ -46,7 +46,11 @@ export class BikeConnection {
   private resolvePromise: (resp: string) => void = (r: string) => {};
   private rejectPromise: (resp: string) => void = (r: string) => {};
 
-  constructor(public bike: Bike, private ble: BluetoothLE, private zone: NgZone) {
+  constructor(
+    public bike: Bike, 
+    private ble: BluetoothLE, 
+    private zone: NgZone
+  ) {
     this.authenticate = this.authenticate.bind(this);
     this.handleResponse = this.handleResponse.bind(this);
     this.connect = this.connect.bind(this);
@@ -202,58 +206,66 @@ export class BikeConnection {
   // this method subscribes to the DATAOUT characterisic (to recieve command
   // responses) and then authenticates with the remote device
   private authenticate(resp): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const platformid: string = window.cordova.platformId;
-      if (platformid === 'android') {
-        this.ble.discover({address: resp.address}).then((discResp) => {
-          // TODO: check if device is stuck in DFU mode, upload firmware if so
-          if (discResp.status === 'discovered') {
-            console.log('got services', discResp);
-            this.ble.subscribe({
-              address: this.bike.getAddr(),
-              service: IGNITION_SERVICE_UUID,
-              characteristic: DATAOUT_CHAR_UUID
-            }).subscribe((subResp) => {
-              if (subResp.status === 'subscribed') {
-                console.log('SUBSCRIPTION SUCCESS: ', subResp);
-                this.sendCmd(new Command(AUTH)).then((authResp) => {
-                  const parts = authResp.split(':');
-                  if (parts[0] !== 'OK') {
-                    reject('Authentication error');
-                  } else {
-                    this.authenticated = true;
+    return new Promise((resolve,reject)=>{
+      this.discoverService(IGNITION_SERVICE_UUID).then((services)=> {
+        this.ble.subscribe({
+          address: this.bike.getAddr(),
+          service: IGNITION_SERVICE_UUID,
+          characteristic: DATAOUT_CHAR_UUID
+        }).subscribe((subResp) => {
+          if (subResp.status === 'subscribed') {
+            console.log('SUBSCRIPTION SUCCESS: ', subResp);
+            this.sendCmd(new Command(AUTH)).then((authResp) => {
+              const parts = authResp.split(':');
+              if (parts[0] !== 'OK') {
+                reject('Authentication error');
+              } else {
+                this.authenticated = true;
 
-                    parts.shift();
-                    const status = JSON.parse(parts.join(':'));
+                parts.shift();
+                const status = JSON.parse(parts.join(':'));
 
-                    // get current ignition state from response
-                    this.zone.run(() => this.bike.setState(status.state === 1 ? ON : OFF));
+                // get current ignition state from response
+                this.zone.run(() => this.bike.setState(status.state === 1 ? ON : OFF));
 
-                    this.bike.setVersion(status.ver);
+                this.bike.setVersion(status.ver);
 
-                    if (!!this.handler) {
-                      this.handler.onConnect().then(resolve);
-                    } else {
-                      resolve();
-                    }
-                  }
-                }).catch(reject);
-              } else if (subResp.status === 'subscribedResult') {
-                this.handleResponse(subResp);
+                if (!!this.handler) {
+                  this.handler.onConnect().then(resolve);
+                } else {
+                  resolve();
+                }
               }
-            }, (err) => {
-              reject(err);
-            });
-          } else {
-            console.log('UNEXPECTED RESPONSE');
+            }).catch(reject);
+          } else if (subResp.status === 'subscribedResult') {
+            this.handleResponse(subResp);
           }
-        }).catch((err) => {
-          console.log('CAUGHT ERROR: ', err);
-        });
-      } else if (platformid === 'ios') {
-        // TODO: ios support
-      }
-    });
+        }, reject);
+      }).catch(reject)
+    })
+  }
+
+  public discoverService(uuid) : Promise<object>{
+    const platformid: string = window.cordova.platformId;
+    if (platformid === 'android') {
+      return this.ble.discover({address: this.bike.getAddr()}).then((resp) => {
+        let filtered = resp.services.filter((srv)=>srv.uuid !== uuid)
+        if(filtered.length === 0){
+          throw("BLE service not found")
+        }
+        if (resp.status !== 'discovered') {
+          throw("Unexpected status: "+resp.status)
+        }
+        return filtered[0]
+      });
+    } else if (platformid === 'ios') {
+      return this.ble.services({address:this.bike.getAddr()}).then((resp)=>{
+        if(resp["services"].includes(IGNITION_SERVICE_UUID))
+          return this.ble.characteristics({address:this.bike.getAddr(), service:IGNITION_SERVICE_UUID})
+        else
+          throw("BLE service not found")
+      });
+    }
   }
 
   disconnect(): void {
