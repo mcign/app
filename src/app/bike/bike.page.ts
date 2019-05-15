@@ -138,8 +138,15 @@ export class BikePage implements ConnectionHandler {
   configProximity() {
     let gotProx = false;
     this.connecting = true;
-    // TODO: timeout
-    this.ign.getProximity(this.bike).subscribe((prox) => {
+    let subscription = this.ign.getProximity(this.bike);
+
+    let timeout = setTimeout(()=>{
+      this.connecting = false;
+      subscription.unsubscribe()
+      this.ign.stopRangingBike(this.bike)
+    }, 5000);
+
+    subscription.subscribe((prox) => {
       this.connecting = false;
       if (!gotProx) {
         gotProx = true;
