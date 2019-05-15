@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with MCIGN.  If not, see <https://www.gnu.org/licenses/>.
 
-*/
+ */
 
 
 import { Component, NgZone } from '@angular/core';
@@ -63,7 +63,7 @@ export class AppComponent {
     this.platform.ready().then((readySource) => {
       this.splashScreen.hide();
 
-    // tslint:disable-next-line:no-string-literal
+      // tslint:disable-next-line:no-string-literal
       cordova.plugins['autoStart'].enableService('IgnitionService');
 
       this.bluetoothle.initialize({request: true}).subscribe(ble => {
@@ -104,7 +104,11 @@ export class AppComponent {
   unregister(bike: Bike) {
     console.log('unregistering ', bike);
     if (confirm('Would you like to unregister this bike from this phone?')) {
-      alert('TODO: delete'); // TODO
+      this.ign.getBikeConnection(bike).sendCmd(new Command(UNREG).addArgument(bike.getKeyId()))
+        .then(()=>this.ign.removeBike(bike)).catch((err)=>{
+          alert("Error unregistering bike: "+err);
+          console.log("unreg error:",err)
+        })
     }
   }
 
