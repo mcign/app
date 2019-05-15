@@ -163,8 +163,6 @@ export class BikeConnection {
       };
 
       if (this.connecting === true) {
-        console.log('wait for last connect to finish');
-        // TODO: create command queue
         reject('wait for last connect to finish');
       }
       if (this.connected === false) {
@@ -176,8 +174,6 @@ export class BikeConnection {
       } else if (this.authenticated === false && cmd.getCmd() !== AUTH) {
         reject('not authenticated');
       } else if (this.pendingCommand) {
-        console.log('wait for last command to finish');
-        // TODO: create command queue
         reject('wait for last command to finish');
       } else {
         send();
@@ -319,7 +315,6 @@ export class BikeConnection {
 
       if (this.connecting) {
         reject('already connecting...');
-        // TODO: wait for other thread to connect, then resolve
       }
       this.connecting = true;
       console.log('connecting...');
