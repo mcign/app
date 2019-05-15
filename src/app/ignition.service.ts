@@ -30,6 +30,7 @@ import { Bike } from './bike';
 import { BikeConnection } from './bike-connection';
 import { DatabaseService } from './database.service';
 import {Command, ON, OFF} from './command';
+import { AppComponent } from './app.component.ts';
 
 @Injectable({
   providedIn: 'root'
@@ -43,7 +44,8 @@ export class IgnitionService {
     private platform: Platform,
     private dbsrv: DatabaseService,
     private ngZone: NgZone,
-    private router: Router
+    private router: Router,
+    private app: AppComponent
   ) {
 
     this.platform.ready().then((readySource) => {
@@ -75,7 +77,6 @@ export class IgnitionService {
         this.startRangingBike(bike);
       } else if (result.state === 'CLRegionStateOutside') {
         console.log('out of range', result, bike);
-        // TODO: display notification & alarm if bike wasn't locked before going out of range
         bike.setLastProx('inf');
         bike.setTimeOfLastProx(Date.now());
         this.stopRangingBike(bike);
@@ -125,7 +126,7 @@ export class IgnitionService {
   startRangingBike(bike: Bike) {
     // tslint:disable-next-line:no-string-literal
     cordova.plugins['locationManager'].startRangingBeaconsInRegion(bike.getBeaconRegion())
-      .fail(console.error) // TODO: handle error
+      .fail(this.app.showError)
       .done();
   }
 
@@ -136,15 +137,14 @@ export class IgnitionService {
     }
     // tslint:disable-next-line:no-string-literal
     cordova.plugins['locationManager'].stopRangingBeaconsInRegion(bike.getBeaconRegion())
-      .fail(console.error)
-      .fail(console.error) // TODO: handle error
+      .fail(this.app.showError)
       .done();
   }
 
   monitorBike(bike: Bike) {
     // tslint:disable-next-line:no-string-literal
     cordova.plugins['locationManager'].startMonitoringForRegion(bike.getBeaconRegion())
-      .fail(console.error) // TODO: handle error
+      .fail(this.app.showError)
       .done();
   }
 
@@ -152,7 +152,7 @@ export class IgnitionService {
     this.stopRangingBike(bike);
     // tslint:disable-next-line:no-string-literal
     cordova.plugins['locationManager'].stopMonitoringForRegion(bike.getBeaconRegion())
-      .fail(console.error) // TODO: handle error
+      .fail(this.app.showError)
       .done();
   }
 
@@ -199,6 +199,19 @@ export class IgnitionService {
     }
     this.bikes.push(bike);
     this.dbsrv.addBike(bike);
+  }
+
+  removeBike(bike: Bike) {
+    this.ngZone.run(()=>{
+      let i = this.bikes.indexOf(bike)
+      this.bikes.splice(i, 1);
+      if(bike.getColor() === 'primary'){
+        if(this.bikes.length > 0)
+          this.loadBike(this.bike)
+        else
+          this.ngZone.run(() => this.router.navigate(['/home'], { replaceUrl : true }));
+      }
+    })
   }
 
   getBike(addr: string): Bike {
