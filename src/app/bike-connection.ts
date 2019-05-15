@@ -47,8 +47,8 @@ export class BikeConnection {
   private rejectPromise: (resp: string) => void = (r: string) => {};
 
   constructor(
-    public bike: Bike, 
-    private ble: BluetoothLE, 
+    public bike: Bike,
+    private ble: BluetoothLE,
     private zone: NgZone
   ) {
     this.authenticate = this.authenticate.bind(this);
@@ -67,7 +67,8 @@ export class BikeConnection {
 
   public registerKeys(name: string, keytype: string): Promise<string[]> {
     return new Promise((resolve, reject) => {
-      cordova.plugins["Crypto"].generateKeys({}, (keystr) => {
+    // tslint:disable-next-line:no-string-literal
+      cordova.plugins['Crypto'].generateKeys({}, (keystr) => {
         const cmd: Command = new Command(REG);
         cmd.addArgument(keytype);
         cmd.addArgument(keystr);
@@ -133,7 +134,8 @@ export class BikeConnection {
         }
         console.log('Sending command: ' + plaintext);
 
-        cordova.plugins["Crypto"].encrypt({plaintext, keys: this.bike.getKeys()}, (cipher: string) => {
+    // tslint:disable-next-line:no-string-literal
+        cordova.plugins['Crypto'].encrypt({plaintext, keys: this.bike.getKeys()}, (cipher: string) => {
           this.resolvePromise = resolve;
           this.rejectPromise = reject;
           this.pendingCommand = true;
@@ -188,7 +190,8 @@ export class BikeConnection {
 
   private handleResponse(resp: OperationResult): void {
     clearTimeout(this.commandResponseTimeout);
-    cordova.plugins["Crypto"].decrypt({cipher: atob(resp.value), keys: this.bike.getKeys()}, (decryptResp) => {
+    // tslint:disable-next-line:no-string-literal
+    cordova.plugins['Crypto'].decrypt({cipher: atob(resp.value), keys: this.bike.getKeys()}, (decryptResp) => {
       this.pendingCommand = false;
 
       const parts = decryptResp.split(':');
@@ -206,8 +209,8 @@ export class BikeConnection {
   // this method subscribes to the DATAOUT characterisic (to recieve command
   // responses) and then authenticates with the remote device
   private authenticate(resp): Promise<string> {
-    return new Promise((resolve,reject)=>{
-      this.discoverService(IGNITION_SERVICE_UUID).then((services)=> {
+    return new Promise((resolve, reject) => {
+      this.discoverService(IGNITION_SERVICE_UUID).then((services) => {
         this.ble.subscribe({
           address: this.bike.getAddr(),
           service: IGNITION_SERVICE_UUID,
@@ -241,29 +244,30 @@ export class BikeConnection {
             this.handleResponse(subResp);
           }
         }, reject);
-      }).catch(reject)
-    })
+      }).catch(reject);
+    });
   }
 
-  public discoverService(uuid) : Promise<object>{
+  public discoverService(uuid): Promise<object> {
     const platformid: string = window.cordova.platformId;
     if (platformid === 'android') {
       return this.ble.discover({address: this.bike.getAddr()}).then((resp) => {
-        let filtered = resp.services.filter((srv)=>srv.uuid !== uuid)
-        if(filtered.length === 0){
-          throw("BLE service not found")
+        const filtered = resp.services.filter((srv) => srv.uuid !== uuid);
+        if (filtered.length === 0) {
+          throw new Error(('BLE service not found'));
         }
         if (resp.status !== 'discovered') {
-          throw("Unexpected status: "+resp.status)
+          throw new Error(('Unexpected status: ' + resp.status));
         }
-        return filtered[0]
+        return filtered[0];
       });
     } else if (platformid === 'ios') {
-      return this.ble.services({address:this.bike.getAddr()}).then((resp)=>{
-        if(resp["services"].includes(IGNITION_SERVICE_UUID))
-          return this.ble.characteristics({address:this.bike.getAddr(), service:IGNITION_SERVICE_UUID})
-        else
-          throw("BLE service not found")
+      return this.ble.services({address: this.bike.getAddr()}).then((resp) => {
+        if (resp.services.includes(IGNITION_SERVICE_UUID)) {
+          return this.ble.characteristics({address: this.bike.getAddr(), service: IGNITION_SERVICE_UUID});
+        } else {
+          throw new Error(('BLE service not found'));
+        }
       });
     }
   }

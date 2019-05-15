@@ -63,10 +63,11 @@ export class AppComponent {
     this.platform.ready().then((readySource) => {
       this.splashScreen.hide();
 
-      cordova.plugins["autoStart"].enableService('IgnitionService');
+    // tslint:disable-next-line:no-string-literal
+      cordova.plugins['autoStart'].enableService('IgnitionService');
 
       this.bluetoothle.initialize({request: true}).subscribe(ble => {
-        console.log(ble)
+        console.log(ble);
         this.bluetoothle.hasPermission().then(resp => {
           if (!resp.hasPermission) {
             this.bluetoothle.requestPermission().then(reqResp => {

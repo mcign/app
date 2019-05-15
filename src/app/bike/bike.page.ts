@@ -63,7 +63,7 @@ export class BikePage implements ConnectionHandler {
       this.color = 'green';
     }
 
-    //this.ign.getProximity(this.bike).subscribe((prox) => zone.run(() => this.prox = prox));
+    // this.ign.getProximity(this.bike).subscribe((prox) => zone.run(() => this.prox = prox));
   }
 
   async onDisconnect(): Promise<any> {

@@ -65,7 +65,8 @@ export class IgnitionService {
   }
 
   initIBeacon() {
-    const delegate = new cordova.plugins["locationManager"].Delegate();
+    // tslint:disable-next-line:no-string-literal
+    const delegate = new cordova.plugins['locationManager'].Delegate();
 
     delegate.didDetermineStateForRegion = (result) => {
       const bike = this.getBike(result.region.identifier);
@@ -113,14 +114,17 @@ export class IgnitionService {
         });
       }
     };
-    cordova.plugins["locationManager"].setDelegate(delegate);
+    // tslint:disable-next-line:no-string-literal
+    cordova.plugins['locationManager'].setDelegate(delegate);
 
     // required in iOS 8+
-    cordova.plugins["locationManager"].requestAlwaysAuthorization();
+    // tslint:disable-next-line:no-string-literal
+    cordova.plugins['locationManager'].requestAlwaysAuthorization();
   }
 
   startRangingBike(bike: Bike) {
-    cordova.plugins["locationManager"].startRangingBeaconsInRegion(bike.getBeaconRegion())
+    // tslint:disable-next-line:no-string-literal
+    cordova.plugins['locationManager'].startRangingBeaconsInRegion(bike.getBeaconRegion())
       .fail(console.error) // TODO: handle error
       .done();
   }
@@ -130,21 +134,24 @@ export class IgnitionService {
       bike.getObserver().complete();
       bike.setObserver(undefined);
     }
-    cordova.plugins["locationManager"].stopRangingBeaconsInRegion(bike.getBeaconRegion())
+    // tslint:disable-next-line:no-string-literal
+    cordova.plugins['locationManager'].stopRangingBeaconsInRegion(bike.getBeaconRegion())
       .fail(console.error)
       .fail(console.error) // TODO: handle error
       .done();
   }
 
   monitorBike(bike: Bike) {
-    cordova.plugins["locationManager"].startMonitoringForRegion(bike.getBeaconRegion())
+    // tslint:disable-next-line:no-string-literal
+    cordova.plugins['locationManager'].startMonitoringForRegion(bike.getBeaconRegion())
       .fail(console.error) // TODO: handle error
       .done();
   }
 
   stopMonitorBike(bike: Bike) {
     this.stopRangingBike(bike);
-    cordova.plugins["locationManager"].stopMonitoringForRegion(bike.getBeaconRegion())
+    // tslint:disable-next-line:no-string-literal
+    cordova.plugins['locationManager'].stopMonitoringForRegion(bike.getBeaconRegion())
       .fail(console.error) // TODO: handle error
       .done();
   }

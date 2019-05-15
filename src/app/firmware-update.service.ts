@@ -63,17 +63,17 @@ export class FirmwareUpdateService {
   uploadGBL(file, bike, observer) {
     let uploadSuccess = false;
     return new Promise((resolve, reject) => {
-      let timeout = setTimeout(()=>{
-        bike.disconnect()
-        reject("Connection timed out")
-      }, 5000)
+      const timeout = setTimeout(() => {
+        bike.disconnect();
+        reject('Connection timed out');
+      }, 5000);
 
       this.ble.connect({address: bike.getAddr()}).subscribe(
         (state) => {
           if (state.status === 'connected') {
-            clearTimeout(timeout)
+            clearTimeout(timeout);
             console.log('connected to OTA DFU mode');
-            let promise = bike.discoverService(OTA_SERVICE).then(service=>{
+            let promise = bike.discoverService(OTA_SERVICE).then(service => {
               return this.ble.write({
                 address: bike.getAddr(),
                 service: OTA_SERVICE,

@@ -53,7 +53,8 @@ export class Bike {
     const major = 34987;
     const minorBytes = this.addr.split(':').slice(4).map((hex) => parseInt('0x' + hex, 16));
     const minor = minorBytes[0] * 256 + minorBytes[1];
-    this.region = new cordova.plugins["locationManager"].BeaconRegion(this.addr, uuid, major, minor);
+    // tslint:disable-next-line:no-string-literal
+    this.region = new cordova.plugins['locationManager'].BeaconRegion(this.addr, uuid, major, minor);
   }
   getVersion() {
     return this.version;
